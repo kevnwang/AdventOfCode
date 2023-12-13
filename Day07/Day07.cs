@@ -1,8 +1,8 @@
 ﻿using System.Collections.Immutable;
 
-namespace AdventOfCode2023.Day7
+namespace AdventOfCode2023.Day07
 {
-    internal class Day7 : Day
+    internal class Day07 : Day
     {
         internal override string GetPartOneAnswer(IEnumerable<string> input)
         {

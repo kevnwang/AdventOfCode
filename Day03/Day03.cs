@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace AdventOfCode2023.Day3
+namespace AdventOfCode2023.Day03
 {
-    internal class Day3 : Day
+    internal class Day03 : Day
     {
         internal override string GetPartOneAnswer(IEnumerable<string> input)
         {

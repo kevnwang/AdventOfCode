@@ -1,6 +1,6 @@
-﻿namespace AdventOfCode2023.Day1
+﻿namespace AdventOfCode2023.Day01
 {
-    internal class Day1 : Day
+    internal class Day01 : Day
     {
         private readonly IReadOnlyDictionary<string, char> _numberStrs = new Dictionary<string, char>
             {

@@ -1,6 +1,6 @@
-﻿namespace AdventOfCode2023.Day5
+﻿namespace AdventOfCode2023.Day05
 {
-    internal class Day5 : Day
+    internal class Day05 : Day
     {
         internal override string GetPartOneAnswer(IEnumerable<string> input)
         {
