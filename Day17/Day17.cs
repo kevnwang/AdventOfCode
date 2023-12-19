@@ -49,8 +49,7 @@
             Dictionary<(int, int), HashSet<(Direction, int)>> memory,
             bool isUltraCrucible = false)
         {
-            if (row < 0 || row >= map.Length || col < 0 || col >= map[row].Length
-                || current.visited.Contains((row, col)))
+            if (row < 0 || row >= map.Length || col < 0 || col >= map[row].Length || current.visited.Contains((row, col)))
             {
                 return;
             }
