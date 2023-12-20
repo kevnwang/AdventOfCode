@@ -59,8 +59,8 @@
             var pulses = new Queue<Pulse>();
 
             var lvModule = (Conjunction)modules["lv"];
-            var lvInputNames = lvModule.GetInputNames();
-            var lvInputCounts = new Dictionary<string, long>();
+            var lvInputNamesCount = lvModule.GetNumInputs();
+            var lvInputCounts = new Dictionary<string, int>();
             var lvInputCycles = new Dictionary<string, long>();
 
             foreach (var i in Enumerable.Range(0, checkRx ? int.MaxValue : 1000))
@@ -69,22 +69,22 @@
 
                 while (pulses.TryDequeue(out var pulse))
                 {
-                    if (checkRx && pulse.DestName == "lv" && pulse.Level == PulseLevel.High)
+                    if (checkRx && pulse.destName == "lv" && pulse.level == PulseLevel.High)
                     {
-                        if (lvInputCounts.TryGetValue(pulse.SourceName, out var count))
+                        if (lvInputCounts.TryGetValue(pulse.sourceName, out var count))
                         {
-                            lvInputCycles[pulse.SourceName] = i - count;
+                            lvInputCycles[pulse.sourceName] = i - count;
 
-                            if (lvInputCycles.Count() == lvInputNames.Count())
+                            if (lvInputCycles.Count() == lvInputNamesCount)
                             {
                                 return lvInputCycles.Values.Aggregate((x, y) => x * y).ToString();
                             }
                         }
 
-                        lvInputCounts[pulse.SourceName] = i;
+                        lvInputCounts[pulse.sourceName] = i;
                     }
 
-                    var moduleName = pulse.DestName;
+                    var moduleName = pulse.destName;
                     if (modules.TryGetValue(moduleName, out var module))
                     {
                         if (module.TryGetNewPulseLevel(pulse, out var newLevel))
@@ -108,6 +108,7 @@
         private interface IModule
         {
             string Name { get; }
+
             bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel);
         }
 
@@ -117,7 +118,7 @@
 
             public bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel)
             {
-                newLevel = pulse.Level;
+                newLevel = pulse.level;
                 return true;
             }
         }
@@ -128,7 +129,7 @@
 
             public bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel)
             {
-                newLevel = pulse.Level;
+                newLevel = pulse.level;
                 return true;
             }
         }
@@ -141,12 +142,13 @@
             {
                 Name = name;
             }
+
             public string Name { get; init; }
 
             public bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel)
             {
                 newLevel = On ? PulseLevel.Low : PulseLevel.High;
-                if (pulse.Level == PulseLevel.Low)
+                if (pulse.level == PulseLevel.Low)
                 {
                     On = !On;
                     return true;
@@ -168,7 +170,7 @@
 
             public bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel)
             {
-                Inputs[pulse.SourceName] = pulse.Level;
+                Inputs[pulse.sourceName] = pulse.level;
                 newLevel = Inputs.Values.All(level => level == PulseLevel.High) ? PulseLevel.Low : PulseLevel.High;
                 return true;
             }
@@ -181,25 +183,13 @@
                 }
             }
 
-            internal IEnumerable<string> GetInputNames()
+            internal int GetNumInputs()
             {
-                return Inputs.Keys;
+                return Inputs.Count();
             }
         }
 
-        private class Pulse
-        {
-            public Pulse(string sourceName, string destName, PulseLevel level)
-            {
-                SourceName = sourceName;
-                DestName = destName;
-                Level = level;
-            }
-
-            public string SourceName { get; init; }
-            public string DestName { get; init; }
-            public PulseLevel Level { get; init; }
-        }
+        private record Pulse(string sourceName, string destName, PulseLevel level);
 
         private enum PulseLevel
         {
