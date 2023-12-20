@@ -47,7 +47,7 @@
             {
                 var conjunction = (Conjunction)module;
                 var conjunctionInputs = configuration.Where(kvp => kvp.Value.Contains(name)).Select(kvp => kvp.Key).Select(module => module.Name);
-                conjunction.AddInputs(conjunctionInputs);
+                conjunction.InitializeInputs(conjunctionInputs);
             }
 
             var pulseCounts = new Dictionary<PulseLevel, long>
@@ -175,7 +175,7 @@
                 return true;
             }
 
-            internal void AddInputs(IEnumerable<string> names)
+            internal void InitializeInputs(IEnumerable<string> names)
             {
                 foreach (var name in names)
                 {
