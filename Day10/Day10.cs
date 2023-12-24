@@ -10,7 +10,7 @@
             return farthest.ToString();
         }
 
-        private (int, int) GetStartingLocation(char[][] map)
+        public (int, int) GetStartingLocation(char[][] map)
         {
             for (var i = 0; i < map.Length; i++)
             {
