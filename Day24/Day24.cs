@@ -23,13 +23,13 @@
         }
 
         private int CountIntersections(IEnumerable<((long x, long y, long z) position, (int x, int y, int z) velocity)> stones,
-            out List<(double, double)> intersections,
+            out List<(decimal, decimal)> intersections,
             (int x, int y) modifier = default,
             bool shortCircuit = false,
             bool checkTestArea = true)
         {
             var count = 0;
-            intersections = new List<(double, double)>();
+            intersections = new List<(decimal, decimal)>();
             for (var i = 0; i < stones.Count(); i++)
             {
                 var stone1 = stones.ElementAt(i);
@@ -48,8 +48,19 @@
                     // a1x + b1y + c1 = 0 
                     // a2x + b2y + c2 = 0
                     // (i, y) = ((b1×c2 − b2×c1)/(a1×b2 − a2×b1), (c1×a2 − c2×a1)/(a1×b2 − a2×b1))
-                    var x = (b1 * c2 - b2 * c1) / (a1 * b2 - a2 * b1);
-                    var y = (c1 * a2 - c2 * a1) / (a1 * b2 - a2 * b1);
+
+                    var d = a1 * b2 - a2 * b1;
+                    if (d == 0)
+                    {
+                        if (shortCircuit)
+                        {
+                            return 0;
+                        }
+                        continue;
+                    }
+
+                    var x = (b1 * c2 - b2 * c1) / d;
+                    var y = (c1 * a2 - c2 * a1) / d;
                     var intersection = (x, y);
                     intersections.Add(intersection);
                     if (IntersectsInFuture(stone1, intersection, checkTestArea) && IntersectsInFuture(stone2, intersection, checkTestArea))
@@ -66,7 +77,7 @@
             return count;
         }
 
-        private bool IntersectsInFuture(((long, long, long), (int, int, int)) stone, (double, double) intersection, bool checkTestArea = true)
+        private bool IntersectsInFuture(((long, long, long), (int, int, int)) stone, (decimal, decimal) intersection, bool checkTestArea = true)
         {
             var ((px, py, _), (vx, vy, _)) = stone;
             var (x, y) = intersection;
@@ -79,21 +90,22 @@
                 return false;
             }
 
-            if (double.IsNaN(x) && double.IsNaN(y))
-            {
-                return true;
-            }
-
             return SameSign(vx, x - px) && SameSign(vy, y - py);
         }
 
-        private bool SameSign(int velocity, double position) => 
+        private bool SameSign(int velocity, decimal position) => 
             velocity > 0 && position > 0 || velocity < 0 && position < 0 || velocity == 0 && position == 0;
 
-        private (double, double, double) GetConstants(((long, long, long), (int vx, int vy, int vz)) stone)
+        private (decimal, decimal, decimal) GetConstants(((long, long, long), (int vx, int vy, int vz)) stone)
         {
             var ((px, py, _), (vx, vy, _)) = stone;
-            var slope = (double)vy / vx;
+
+            if (vx == 0)
+            {
+                return default;
+            }
+
+            var slope = (decimal)vy / vx;
             // py = m(px) + b
             var yIntercept = py - slope * px;
 
@@ -119,41 +131,37 @@
                 for (var j = -magnitude; j <= magnitude; j++)
                 {
                     var count = CountIntersections(stones,
-                        out List<(double x, double y)> intersections,
+                        out List<(decimal x, decimal y)> intersections,
                         modifier: (i, j),
                         shortCircuit: true,
                         checkTestArea: false);
 
                     if (count == totalCombos)
                     {
-                        intersections = intersections
-                            .Where(i => !double.IsNaN(i.x) && !double.IsNaN(i.y))
-                            .Select(i => (Math.Round(i.x), Math.Round(i.y)))
-                            .ToList();
+                        var (rockX, rockY) = intersections.Select(i => (Math.Round(i.x), Math.Round(i.y))).Distinct().Single();
 
-                        var distinct = intersections
-                            .Distinct()
-                            .Select(distinctI => (distinctI, intersections.Count(i => i == distinctI))).ToList();
-                        distinct.Sort((x, y) => y.Item2 - x.Item2);
-
-                        var ((rockX, rockY), _) = distinct.First();
-                        var times = new List<double>();
+                        var times = new List<decimal>();
 
                         foreach (var stone in stones)
                         {
                             var tX = (rockX - stone.position.x) / (stone.velocity.x - i);
                             var tY = (rockY - stone.position.y) / (stone.velocity.y - j);
 
-                            var t = double.IsNaN(tX) ? tY : tX;
-                            times.Add(t);
+                            if (tX != tY)
+                            {
+                                throw new Exception("Times across x and y axis differ");
+                            }
+
+                            times.Add(tX);
                         }
 
                         for (var k = -magnitude; k <= magnitude; k++)
                         {
-                            var zList = stones.Select((stone, index) => stone.position.z + (stone.velocity.z - k) * times[index]);
-                            if (zList.Distinct().Count() == 1)
+                            var zPositions = stones.Select((stone, index) => stone.position.z + (stone.velocity.z - k) * times[index]);
+                            if (zPositions.Distinct().Count() == 1)
                             {
-                                var total = rockX + rockY + zList.Distinct().Single();
+                                var rockZ = zPositions.Distinct().Single();
+                                var total = rockX + rockY + rockZ;
                                 return total.ToString();
                             }
                         }
