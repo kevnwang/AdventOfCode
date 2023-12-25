@@ -4,11 +4,10 @@
     {
         internal override string GetPartOneAnswer(IEnumerable<string> input)
         {
-            var (numCanDisintegrate, _) = Solve(input);
-            return numCanDisintegrate.ToString();
+            return Solve(input, out var _).ToString();
         }
 
-        private (int, int) Solve(IEnumerable<string> input)
+        private int Solve(IEnumerable<string> input, out int totalFalls)
         {
             var map = new ((int, int, int), (int, int, int))[309][][];
             for (var i = 0; i < map.Length; i++)
@@ -31,24 +30,25 @@
                 WriteToMap(map, brick, brick);
             }
 
-            CollapseMapAndReturnNumFalls(map);
+            Collapse(map, out var _);
 
             var bricks = Flatten(map).Distinct().Where(x => x != default);
 
             var numCanDisintegrate = 0;
-            var numFalls = 0;
+            totalFalls = 0;
             foreach (var brick in bricks)
             {
                 var mapWithBrickRemoved = map.Select(plane => plane.Select(row => row.Select(space => space == brick ? default : space).ToArray()).ToArray()).ToArray();
                 var mapWithBrickRemovedFlattened = new List<((int, int, int), (int, int, int))>(Flatten(mapWithBrickRemoved));
-                numFalls += CollapseMapAndReturnNumFalls(mapWithBrickRemoved);
+                Collapse(mapWithBrickRemoved, out var numFalls);
+                totalFalls += numFalls;
                 var mapWithBrickRemovedAfterFallFlattened = Flatten(mapWithBrickRemoved);
                 if (mapWithBrickRemovedFlattened.SequenceEqual(mapWithBrickRemovedAfterFallFlattened))
                 {
                     numCanDisintegrate++;
                 }
             }
-            return (numCanDisintegrate, numFalls);
+            return numCanDisintegrate;
         }
         private IEnumerable<((int, int, int), (int, int, int))> Flatten(((int, int, int), (int, int, int))[][][] map) => map.SelectMany(x => x).SelectMany(x => x);
 
@@ -79,10 +79,10 @@
             }
         }
 
-        private int CollapseMapAndReturnNumFalls(((int x, int y, int z) end1, (int x, int y, int z) end2)[][][] map)
+        private void Collapse(((int x, int y, int z) end1, (int x, int y, int z) end2)[][][] map, out int numFalls)
         {
             HashSet<((int, int, int), (int, int, int))> attemptedBricks = new HashSet<((int, int, int), (int, int, int))>();
-            var numFalls = 0;
+            numFalls = 0;
             for (var z = 2; z < map.Length; z++)
             {
                 for (var y = 0; y < map[z].Length; y++)
@@ -131,7 +131,6 @@
                     }
                 }
             }
-            return numFalls;
         }
 
         private int GetFallHeight(((int x, int y, int z) end1, (int x, int y, int z) end2)[][][] map, int i, int j, int k)
@@ -151,7 +150,7 @@
 
         internal override string GetPartTwoAnswer(IEnumerable<string> input)
         {
-            var (_, numFalls) = Solve(input);
+            Solve(input, out var numFalls);
             return numFalls.ToString();
         }
     }
