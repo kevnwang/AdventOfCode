@@ -29,7 +29,7 @@
             bool checkTestArea = true)
         {
             var count = 0;
-            intersections = new List<(decimal, decimal)>();
+            intersections = [];
             for (var i = 0; i < stones.Count(); i++)
             {
                 var stone1 = stones.ElementAt(i);
