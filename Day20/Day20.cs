@@ -69,11 +69,11 @@
 
                 while (pulses.TryDequeue(out var pulse))
                 {
-                    if (checkRx && pulse.destName == "lv" && pulse.level == PulseLevel.High)
+                    if (checkRx && pulse.DestName == "lv" && pulse.Level == PulseLevel.High)
                     {
-                        if (lvInputCounts.TryGetValue(pulse.sourceName, out var count))
+                        if (lvInputCounts.TryGetValue(pulse.SourceName, out var count))
                         {
-                            lvInputCycles[pulse.sourceName] = i - count;
+                            lvInputCycles[pulse.SourceName] = i - count;
 
                             if (lvInputCycles.Count() == lvInputNamesCount)
                             {
@@ -81,10 +81,10 @@
                             }
                         }
 
-                        lvInputCounts[pulse.sourceName] = i;
+                        lvInputCounts[pulse.SourceName] = i;
                     }
 
-                    var moduleName = pulse.destName;
+                    var moduleName = pulse.DestName;
                     if (modules.TryGetValue(moduleName, out var module))
                     {
                         if (module.TryGetNewPulseLevel(pulse, out var newLevel))
@@ -118,7 +118,7 @@
 
             public bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel)
             {
-                newLevel = pulse.level;
+                newLevel = pulse.Level;
                 return true;
             }
         }
@@ -129,7 +129,7 @@
 
             public bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel)
             {
-                newLevel = pulse.level;
+                newLevel = pulse.Level;
                 return true;
             }
         }
@@ -148,7 +148,7 @@
             public bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel)
             {
                 newLevel = On ? PulseLevel.Low : PulseLevel.High;
-                if (pulse.level == PulseLevel.Low)
+                if (pulse.Level == PulseLevel.Low)
                 {
                     On = !On;
                     return true;
@@ -170,7 +170,7 @@
 
             public bool TryGetNewPulseLevel(Pulse pulse, out PulseLevel newLevel)
             {
-                Inputs[pulse.sourceName] = pulse.level;
+                Inputs[pulse.SourceName] = pulse.Level;
                 newLevel = Inputs.Values.All(level => level == PulseLevel.High) ? PulseLevel.Low : PulseLevel.High;
                 return true;
             }
@@ -185,11 +185,11 @@
 
             internal int GetNumInputs()
             {
-                return Inputs.Count();
+                return Inputs.Count;
             }
         }
 
-        private record Pulse(string sourceName, string destName, PulseLevel level);
+        private record Pulse(string SourceName, string DestName, PulseLevel Level);
 
         private enum PulseLevel
         {

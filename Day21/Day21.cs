@@ -7,33 +7,8 @@
             var map = input.Select(x => x.ToCharArray()).ToArray();
             var day10 = new Day10.Day10();
             var startingLoc = day10.GetStartingLocation(map);
-
-            var bfs = new Queue<(int, int)>();
-            bfs.Enqueue(startingLoc);
-            foreach (var _ in Enumerable.Range(0, 64))
-            {
-                var newBfs = new HashSet<(int, int)>();
-                while (bfs.TryDequeue(out var loc))
-                {
-                    var (row, col) = loc;
-                    AddNeighbor(map, row + 1, col, newBfs);
-                    AddNeighbor(map, row - 1 , col, newBfs);
-                    AddNeighbor(map, row, col + 1, newBfs);
-                    AddNeighbor(map, row, col - 1, newBfs);
-                }
-                bfs = new Queue<(int, int)>(newBfs);
-            }
-            return bfs.Count.ToString();
-        }
-
-        private void AddNeighbor(char[][] map, int row, int col, HashSet<(int, int)> newBfs)
-        {
-            if (row < 0 || col < 0 || row >= map.Length || col >= map[row].Length || newBfs.Contains((row, col)) || map[row][col] == '#')
-            {
-                return;
-            }
-
-            newBfs.Add((row, col));
+            var visited = BfsGetVisited(map, startingLoc);
+            return visited.Where(kvp => kvp.Value % 2 == 0 && kvp.Value <= 64).Count().ToString();
         }
 
         internal override string GetPartTwoAnswer(IEnumerable<string> input)
